@@ -80,9 +80,8 @@ url2web_detect = Pipe(module=[whatweb, eyewitness, dirsearch])
 # nmap_url_generator.register_pipe(url2web_detect)
 check_host_ssl.register_pipe(url2web_detect)
 
-
-# start task
-# controller.resume_state()
+# add task
+oneforall.add_task('example.com')
 # controller start
 controller.run()
 # controller.save_state()
