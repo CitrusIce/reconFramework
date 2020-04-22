@@ -1,12 +1,10 @@
 # reconFramework
 
-[中文文档](https://github.com/CitrusIce/reconFramework/blob/master/readme_zh.md)
+现在有很多信息收集工具，但是没有一款可以做到能自动收集一个目标的所有信息，同时这也是不可能的，但是我们可以将这些工具组装起来，成为一个全新的工具，使我们信息收集的工作变得自动化，因此我产生了写这个框架的念头。
 
-There are many recon tools now, but no one can take care of every aspect of the reconnaissance, which is impossible, but we can assemble these tools and let them become a brand new tool to make our life easier, and that's why I write this.
+这个工具的主要思想就是将其他工具封装为模块，并将这些模块的输入输出相连，达到自动信息收集，最终收集到的数据将存储在数据库中。
 
-The main idea of this framework is to wrap various tools (or you can write your own tool as a module) as modules and connect their input and output to automate the progress of information collecting, and the result data will be stored in a database.
-
-## Installation
+## 安装
 
 ```bash
 git clone https://github.com/CitrusIce/reconFramework.git
@@ -14,17 +12,17 @@ cd reconFramework
 ./install.sh
 ```
 
-## How to use 
+## 如何使用
 
-I haven't finish this project yet and there has no interface for users and you have to changing the code in file reconFramework.py. Luckily I have done almost everthing for you and all you need is to change the domain name in the bottom of the file and run it. 
+我还没有将这个项目写完，因此还有没有cli，如果要使用就需要修改reconFramework.py的代码，但是不需要改太多，只用将最下面的域名修改为目标域名就可以运行了
 
-Here is what it will do
+运行后它将为你做这些事
 
-- collecting subdomains using oneforall
-- scan some general ports and detect the service using nmap
-- fingerprint scan using whatweb for web services
-- directory scan using dirsearch
-- capture web screenshot using EyeWitness
+- 使用oneforall 收集子域名
+- 使用nmap扫描一些常用端口并探测服务
+- 使用whatweb 扫描web服务的指纹 
+- 使用dirsearch 扫描web路径
+- 使用Eyewitness 网页截图
 
 ## requirements
 
@@ -32,7 +30,7 @@ Here is what it will do
 
 ## module
 
-This framework has preset some modules, here is the list.
+这个框架已经预置了一些我封装的模块
 
 - [dirsearch](https://github.com/maurosoria/dirsearch)
 - [EyeWitness](https://github.com/FortyNorthSecurity/EyeWitness)
@@ -43,15 +41,15 @@ This framework has preset some modules, here is the list.
 - check_cdn 
 - check_host_ssl
 
-Thanks to the developer of these greate tools! 
+感谢开发这些工具的开发者！
 
-## Directory structure
+## 目录结构
 
 ```
 .
-├── clean_database.py       script to remove all data in database
-├── framework_config.py     framework config file
-├── framework_modules       all framework modules put in here
+├── clean_database.py       删除数据库所有数据的脚本
+├── framework_config.py     框架设置文件
+├── framework_modules       框架所有模块存放在这里
 │   ├── base_class.py
 │   ├── __init__.py
 │   ├── module_brutespray.py
@@ -64,19 +62,18 @@ Thanks to the developer of these greate tools!
 │   ├── module_oneforall.py
 │   ├── module_whatweb.py
 │   └── sql.py
-├── install.sh      install script for installing modules (dependencies and so on ..)
-├── output      all modules tmp file/result file will be put in there
+├── install.sh      安装脚本 (安装需要的工具以及依赖)
+├── output      所有模块输出的临时文件、结果文件会被放在这里
 │   ├── dirsearch
 │   ├── EyeWitness
 │   ├── nmap
 │   ├── oneforall
 │   └── whatweb
 ├── print_state.py
-├── readme.md
-├── reconFramework.py       the main file
+├── reconFramework.py       主文件
 ├── requirements.txt
-├── setup_database.py       script for database setup
-└── tools       directory for putting tools here
+├── setup_database.py       设置数据库的脚本
+└── tools       模块所需要的工具放在这
     ├── dirsearch
     ├── EyeWitness
     ├── EyeWitness.bak
@@ -84,9 +81,9 @@ Thanks to the developer of these greate tools!
     └── OneForAll
 ```
 
-## How to write my own modules?
+## 如何写一个模块
 
-In file base_class.py I have defined a metaclass named Module, and all you need to do is to write a class inherit the Module class and implement these abstract method
+在文件 base_class.py 中我定义了一个元类Module，你只需要写一个class继承这个Module类同时实现其中的抽象方法就可以了
 
 ```python
 class Module(metaclass=ABCMeta):
@@ -110,7 +107,7 @@ class Module(metaclass=ABCMeta):
         pass
 ```
 
-A Pipe object is the object between module and module, which get the result data from the last module and send it to the next module, and you can process the data while the data is being transfered.
+Pipe对象是模块间的媒介，用于模块间数据的传输。它接收上一个模块的结果并将这些数据作为task送到下一个模块，同时你可以在数据被传输的时候对数据进行一些处理
 
 ```python
 from framework_modules.module_nmap import Nmap
@@ -131,12 +128,11 @@ check_cdn2nmap = Pipe(
 check_cdn.register_pipe(check_cdn2nmap) 
 ```
 
-## Contribution
+## 贡献
 
-feel free to submit issue and it will be my pleasure if you contribute your code to this project
-
+欢迎向本项目提交issue以及贡献代码
 
 ## To-do list
 
-- finish BruteSpray module
-- command line interface
+- 完成BruteSpray模块
+- 写一个命令行界面
