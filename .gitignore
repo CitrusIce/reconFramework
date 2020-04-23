@@ -1,6 +1,4 @@
-!/output/
 /output/*
-!/tools/
 /tools/*
 .vscode/
 __pycache__/
