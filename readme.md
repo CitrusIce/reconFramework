@@ -12,6 +12,9 @@ The main idea of this framework is to wrap various tools (or you can write your 
 git clone https://github.com/CitrusIce/reconFramework.git
 cd reconFramework
 ./install.sh
+
+# after change database config in framework_config.py
+python3 setup_database.py
 ```
 
 ## How to use 
