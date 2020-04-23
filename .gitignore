@@ -1,7 +1,7 @@
 !/output/
-output/*
+/output/*
 !/tools/
-tools/*
+/tools/*
 .vscode/
 __pycache__/
 *.log
