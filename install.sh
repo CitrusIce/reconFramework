@@ -1,4 +1,6 @@
 #!/bin/bash
+[[ -d tools ]] || mkdir tools
+[[ -d output ]] || mkdir output
 cd tools
 echo "installing oneforall"
 #git clone https://github.com/shmilylty/OneForAll.git/
