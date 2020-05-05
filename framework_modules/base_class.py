@@ -1,6 +1,7 @@
 from functools import total_ordering
 from abc import ABCMeta, abstractmethod
 from inspect import getargspec
+import inspect
 import heapq
 import os
 import json
@@ -12,6 +13,15 @@ import pickle
 @total_ordering
 class Module(metaclass=ABCMeta):
     def __init__(self, pipe=None):
+        self.class_name = self.__class__.__name__
+        self.currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe()))
+        )
+        self.basedir = os.path.dirname(self.currentdir)
+        self.outputdir = os.path.join(self.basedir, "output", self.class_name)
+        self.log_file_path = os.path.join(self.outputdir, "log.txt")
+        if not os.path.exists(self.outputdir):
+            os.mkdir(self.outputdir)
         self.pipe_list = []
         self.task_list = []
         if isinstance(pipe, list):
@@ -22,6 +32,27 @@ class Module(metaclass=ABCMeta):
             pass
         else:
             raise TypeError("Expected a List or Pipe type")
+
+        # setup logger
+        self.logger = logging.getLogger(self.class_name)
+        self.logger.setLevel(logging.INFO)
+
+        # create console handler and set level to debug
+        self.log_file_path = os.path.join(self.log_file_path)
+        ch = logging.FileHandler(self.log_file_path)
+
+        ch.setLevel(logging.DEBUG)
+
+        # create formatter
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+
+        # add formatter to ch
+        ch.setFormatter(formatter)
+
+        # add ch to self.logger
+        self.logger.addHandler(ch)
 
     def add_task(self, task):
         self.task_list.append(task)

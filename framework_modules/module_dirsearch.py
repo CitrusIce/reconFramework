@@ -10,13 +10,6 @@ import json
 from .base_class import Module
 from .sql import SqlHelper
 
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-basedir = os.path.dirname(currentdir)
-dirsearch_path = os.path.join(basedir, "tools", "dirsearch", "dirsearch.py")
-outputdir = os.path.join(basedir, "output", "dirsearch")
-if not os.path.exists(outputdir):
-    os.mkdir(outputdir)
-
 
 # def dirsearch_api(url, path):
 #     """
@@ -39,11 +32,16 @@ class Dirsearch(Module):
 
     def __init__(self):
         super().__init__()
+
+        self.dirsearch_path = os.path.join(
+            self.basedir, "tools", "dirsearch", "dirsearch.py"
+        )
+
         self.result_files = []
 
     def exec(self):
         for url in self.task_list:
-            logging.info("Dirsearch Module start at url: " + url)
+            self.logger.info("Dirsearch Module start at url: " + url)
             # outdir = os.path.join(currentdir, "reports")
             parsed = urllib.parse.urlparse(url)
             filename = (
@@ -51,11 +49,11 @@ class Dirsearch(Module):
                 + (("_" + str(parsed.port)) if parsed.port is not None else "")
                 + ".json"
             )
-            path = os.path.join(outputdir, filename)
+            path = os.path.join(self.outputdir, filename)
             self.result_files.append(path)
             # dirsearch_api(url, path)
             cmd = "/usr/bin/python3 {dirsearch_path} -u {url} -e * --json-report={path}".format(
-                dirsearch_path=dirsearch_path, url=url, path=path
+                dirsearch_path=self.dirsearch_path, url=url, path=path
             )
             proc = subprocess.Popen(cmd, stdout=open("/dev/null", "w"), shell=True,)
             # proc = subprocess.Popen(cmd, shell=True,)
@@ -74,7 +72,7 @@ class Dirsearch(Module):
                 tmp = json.load(f)
                 result.update(tmp)
             except Exception as e:
-                logging.error(self.__class__.__name__ + " " + str(e))
+                self.logger.error(self.__class__.__name__ + " " + str(e))
 
             f.close()
         return result

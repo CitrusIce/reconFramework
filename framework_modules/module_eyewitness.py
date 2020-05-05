@@ -7,17 +7,7 @@ import inspect
 
 from .base_class import Module
 from .sql import SqlHelper
-
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-basedir = os.path.dirname(currentdir)
-
-
-username = "reimu"
-eyewitness_path = os.path.join(basedir, "tools", "EyeWitness","Python", "EyeWitness.py")
-outputdir = os.path.join(basedir, "output", "EyeWitness")
-if not os.path.exists(outputdir):
-    os.mkdir(outputdir)
-tmp_file_path = os.path.join(outputdir, "eyewitness_tmp.txt")
+from framework_config import eyewitness_username as username
 
 
 class EyeWitness(Module):
@@ -29,30 +19,34 @@ class EyeWitness(Module):
 
     def __init__(self):
         super().__init__()
+        self.eyewitness_path = os.path.join(
+            self.basedir, "tools", "EyeWitness", "Python", "EyeWitness.py"
+        )
+        self.tmp_file_path = os.path.join(self.outputdir, "eyewitness_tmp.txt")
 
     def exec(self):
-        f = open(tmp_file_path, "w")
+        f = open(self.tmp_file_path, "w")
         for host in self.task_list:
-            logging.info(self.__class__.__name__ + " add url to file: " + host)
+            self.logger.info(self.__class__.__name__ + " add url to file: " + host)
             f.write(host + "\n")
         f.close()
         outdir_name = time.strftime("%Y-%m-%d-%H", time.localtime()) + "_reports"
-        self.outdir_path = os.path.join(outputdir, outdir_name)
-        logging.info(self.__class__.__name__ + " start capture")
+        self.outdir_path = os.path.join(self.outputdir, outdir_name)
+        self.logger.info(self.__class__.__name__ + " start capture")
         cmd = "sudo -u {username} /usr/bin/python3 {eyewitness_path} -f {tmp_file_path} -d {outdir_path} --no-prompt".format(
             username=username,
-            eyewitness_path=eyewitness_path,
-            tmp_file_path=tmp_file_path,
+            eyewitness_path=self.eyewitness_path,
+            tmp_file_path=self.tmp_file_path,
             outdir_path=self.outdir_path,
         )
+        proc = subprocess.Popen(cmd, stdout=open(self.log_file_path, "a"), shell=True,)
 
-        proc = subprocess.Popen(cmd, shell=True,)
         # proc = subprocess.Popen(cmd, stdout=open("/dev/null", "w"), shell=True,)
         proc.wait()
 
     def empty(self):
         # pass
-        os.remove(tmp_file_path)
+        os.remove(self.tmp_file_path)
 
     def get_output(self):
         return None

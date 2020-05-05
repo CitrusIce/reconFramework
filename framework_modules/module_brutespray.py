@@ -4,20 +4,13 @@ import urllib.parse
 import sys
 import os
 import inspect
-import logging
 import json
 
 
 from .base_class import Module
 from .sql import SqlHelper
 
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-basedir = os.path.dirname(currentdir)
-# dirsearch_path = os.path.join(basedir, "tools", "dirsearch", "dirsearch.py")
 brutespray_path = "/usr/share/brutespray/brutespray.py"
-outputdir = os.path.join(basedir, "output", "brutespray")
-if not os.path.exists(outputdir):
-    os.mkdir(outputdir)
 
 
 class BruteSpray(Module):
@@ -33,12 +26,14 @@ class BruteSpray(Module):
 
     def exec(self):
         for filename in self.task_list:
-            logging.info("BruteSpray Module start ")
+            self.logger.info("BruteSpray Module start ")
             # cmd = "/usr/bin/python3 {brutespray_path} -f {target} -o {outputdir}".format(
             #     brutespray_path=brutespray_path, target=filename, outputdir=outputdir
             # )
             cmd = "/usr/bin/python3 {brutespray_path} -f {target} -u test -p test -o {outputdir}".format(
-                brutespray_path=brutespray_path, target=filename, outputdir=outputdir
+                brutespray_path=brutespray_path,
+                target=filename,
+                outputdir=self.outputdir,
             )
             proc = subprocess.Popen(cmd, shell=True,)
             proc.wait()

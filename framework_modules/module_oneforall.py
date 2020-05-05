@@ -6,28 +6,9 @@ import subprocess
 from ipaddress import ip_address
 from ipaddress import ip_network
 
-# currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-# if __name__ == "__main__":
-
-#     basedir = os.path.dirname(os.path.dirname(currentdir))
-#     basedir = os.path.dirname(os.path.dirname(currentdir))
-#     sys.path.insert(1, basedir)
-# else:
-#     sys.path.insert(0, currentdir)
-
 
 from .base_class import Module
 from .sql import SqlHelper
-
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-basedir = os.path.dirname(currentdir)
-# dirsearch_path = os.path.join(basedir, "tools", "dirsearch", "dirsearch.py")
-outputdir = os.path.join(basedir, "output", "oneforall")
-if not os.path.exists(outputdir):
-    os.mkdir(outputdir)
-
-oneforall_dir_path = os.path.join(basedir, "tools", "OneForAll", "oneforall")
-oneforall_path = os.path.join(oneforall_dir_path, "oneforall.py")
 
 
 class OneForAllWrap(Module):
@@ -59,6 +40,10 @@ eg:
     def __init__(self, project_name):
         super().__init__()
         self.project_name = project_name
+        self.oneforall_dir_path = os.path.join(
+            self.basedir, "tools", "OneForAll", "oneforall"
+        )
+        self.oneforall_path = os.path.join(self.oneforall_dir_path, "oneforall.py")
 
     def empty(self):
         pass
@@ -74,9 +59,11 @@ eg:
             #     oneforall_path=oneforall_path, target=host, output=outputdir
             # )
             cmd = "/usr/bin/python3.8 {oneforall_path} --target {target} --req False --format json run"
-            cmd = cmd.format(oneforall_path=oneforall_path, target=host)
+            cmd = cmd.format(oneforall_path=self.oneforall_path, target=host)
 
-            proc = subprocess.Popen(cmd, shell=True,)
+            proc = subprocess.Popen(
+                cmd, stdout=open(self.log_file_path, "a"), shell=True,
+            )
             # proc = subprocess.Popen(cmd, stdout=open("/dev/null", "w"), shell=True,)
             proc.wait()
             # proc = subprocess.Popen(
@@ -87,7 +74,7 @@ eg:
         result = list()
         for host in self.task_list:
             filename = os.path.join(
-                oneforall_dir_path, "results", host + "_resolve_result.json"
+                self.oneforall_dir_path, "results", host + "_resolve_result.json"
             )
             with open(filename, "r") as f:
                 tmp_list = json.loads(f.read())
@@ -120,57 +107,54 @@ eg:
                     },
                 )
 
+    def get_ip(self, data):
+        list_ = []
+        for dict_ in data:
+            # if len(list_) >= 100:
+            #     break
+            if dict_["content"] is None:
+                continue
+            if "," not in dict_["content"]:
+                try:
+                    ip = ip_address(dict_["content"])
+                except ValueError:
+                    self.logger.warning(dict_["content"] + " is not a valid ip!")
+                else:
+                    if not ip.is_private:
+                        list_.append(dict_["content"])
+        return list_
 
-def oneforall_get_ip(data):
-    list_ = []
-    for dict_ in data:
-        # if len(list_) >= 100:
-        #     break
-        if dict_["content"] is None:
-            continue
-        if "," not in dict_["content"]:
-            try:
-                ip = ip_address(dict_["content"])
-            except ValueError:
-                logging.warning(dict_["content"] + " is not a valid ip!")
+    def get_class_c_ip(self, data):
+        data = self.get_ip(data)
+        list_ = []
+        for ip in data:
+            ip_range = ip_network(ip + "/24", strict=False)
+            list_.append(ip_range)
+        list_ = list(set(list_))
+
+        list_ = [str(ip) for network in list_ for ip in network]
+
+        return list_
+
+    def get_subdomain(self, data):
+        list_ = []
+        for dict_ in data:
+            # if len(list_) >= 256:
+            #     break
+            if dict_["content"] is None:
+                continue
+            if "," not in dict_["content"]:
+                try:
+                    ip = ip_address(dict_["content"])
+                except ValueError:
+                    self.logger.warning(dict_["content"] + " is not a valid ip!")
+                else:
+                    if not ip.is_private:
+                        list_.append(dict_["subdomain"])
             else:
-                if not ip.is_private:
-                    list_.append(dict_["content"])
-    return list_
-
-
-def oneforall_get_class_c_ip(data):
-    data = oneforall_get_ip(data)
-    list_ = []
-    for ip in data:
-        ip_range = ip_network(ip + "/24", strict=False)
-        list_.append(ip_range)
-    list_ = list(set(list_))
-
-    list_ = [str(ip) for network in list_ for ip in network]
-
-    return list_
-
-
-def oneforall_get_subdomain(data):
-    list_ = []
-    for dict_ in data:
-        # if len(list_) >= 256:
-        #     break
-        if dict_["content"] is None:
-            continue
-        if "," not in dict_["content"]:
-            try:
-                ip = ip_address(dict_["content"])
-            except ValueError:
-                logging.warning(dict_["content"] + " is not a valid ip!")
-            else:
-                if not ip.is_private:
-                    list_.append(dict_["subdomain"])
-        else:
-            list_.append(dict_["subdomain"])
-    logging.info("Pipe list_ size: " + str(len(list_)))
-    return list_
+                list_.append(dict_["subdomain"])
+        self.logger.info("Pipe list_ size: " + str(len(list_)))
+        return list_
 
 
 if __name__ == "__main__":

@@ -7,19 +7,16 @@ import os
 import inspect
 import logging
 
-# from concurrent.futures import ThreadPoolExecutor
-
-# currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-# if __name__ == "__main__":
-
-#     basedir = os.path.dirname(os.path.dirname(currentdir))
-#     basedir = os.path.dirname(os.path.dirname(currentdir))
-#     sys.path.insert(1, basedir)
-# else:
-#     sys.path.insert(0, currentdir)
 
 from .base_class import Module
 from .sql import SqlHelper
+
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+basedir = os.path.dirname(currentdir)
+dirsearch_path = os.path.join(basedir, "tools", "dirsearch", "dirsearch.py")
+outputdir = os.path.join(basedir, "output", "dirsearch")
+if not os.path.exists(outputdir):
+    os.mkdir(outputdir)
 
 
 class CheckHostSSL(Module):
@@ -61,7 +58,7 @@ class CheckHostSSL(Module):
         await self.client.aclose()
 
     async def check_ssl(self, hostname):
-        logging.info(self.__class__.__name__ + " check host: " + hostname)
+        self.logger.info(self.__class__.__name__ + " check host: " + hostname)
         try:
             await self.client.get("https://" + hostname)
             url = "https://" + hostname
@@ -73,10 +70,12 @@ class CheckHostSSL(Module):
             except:
                 return
         self.result.append(url)
-        logging.info(self.__class__.__name__ + " add url to result: " + url)
+        self.logger.info(self.__class__.__name__ + " add url to result: " + url)
 
     def get_output(self):
-        logging.info(self.__class__.__name__ + " result size: " + str(len(self.result)))
+        self.logger.info(
+            self.__class__.__name__ + " result size: " + str(len(self.result))
+        )
         return self.result
 
     def empty(self):
@@ -92,7 +91,7 @@ if __name__ == "__main__":
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[logging.FileHandler("debug.log"), logging.StreamHandler(sys.stdout)],
     )
-    check_cdn_ssl = CheckHostSSL()
-    check_cdn_ssl.add_task("www.baidu.com")
-    check_cdn_ssl.add_task("weibo.com")
-    check_cdn_ssl.run()
+    # check_cdn_ssl = CheckHostSSL()
+    # check_cdn_ssl.add_task("www.baidu.com")
+    # check_cdn_ssl.add_task("weibo.com")
+    # check_cdn_ssl.run()

@@ -1,5 +1,7 @@
 import dns.resolver
 import logging
+import inspect
+import os
 from concurrent.futures import ThreadPoolExecutor
 
 # if __name__ == "__main__":
@@ -13,6 +15,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 from .base_class import Module
 from .sql import SqlHelper
+
+# currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+# basedir = os.path.dirname(currentdir)
+# outputdir = os.path.join(basedir, "output", "check_cdn")
+# if not os.path.exists(outputdir):
+#     os.mkdir(outputdir)
 
 
 class CheckCDN(Module):
@@ -48,7 +56,7 @@ class CheckCDN(Module):
         self.data = dict()
 
     def check_cdn(self, host):
-        logging.info(self.__class__.__name__ + " check url: " + host)
+        self.logger.info(self.__class__.__name__ + " check url: " + host)
         # 目标域名cdn检测
         myResolver = dns.resolver.Resolver()
         # myResolver.lifetime = myResolver.timeout = 2.0
@@ -75,7 +83,7 @@ class CheckCDN(Module):
                 record = myResolver.query(host)
                 result.append(record[0].address)
             except Exception as e:
-                logging.warning(self.__class__.__name__ + " : " + str(e))
+                self.logger.warning(self.__class__.__name__ + " : " + str(e))
             if len(result) == 0:
                 self.data[host] = {"use_CDN": True}
             elif len(result) == 1:
