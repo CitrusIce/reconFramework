@@ -4,9 +4,6 @@ import logging
 from framework_modules.base_class import Pipe, Controller
 from framework_modules.module_oneforall import OneForAllWrap
 from framework_modules.module_oneforall import OneForAllWrap
-from framework_modules.module_oneforall import oneforall_get_ip
-from framework_modules.module_oneforall import oneforall_get_subdomain
-from framework_modules.module_oneforall import oneforall_get_class_c_ip
 from framework_modules.module_check_cdn import CheckCDN
 from framework_modules.module_check_host_ssl import CheckHostSSL
 from framework_modules.module_dirsearch import Dirsearch
@@ -49,8 +46,8 @@ controller.push(whatweb)
 # oneforall -> nmap
 
 
-oneforall2nmap = Pipe(func=oneforall_get_ip, module=nmap)
-oneforall2check_cdn = Pipe(func=oneforall_get_subdomain, module=[check_host_ssl])
+oneforall2nmap = Pipe(func=oneforall.get_ip, module=nmap)
+oneforall2check_cdn = Pipe(func=oneforall.get_subdomain, module=[check_host_ssl])
 
 oneforall.register_pipe(oneforall2check_cdn)
 oneforall.register_pipe(oneforall2nmap)
@@ -81,7 +78,7 @@ url2web_detect = Pipe(module=[whatweb, eyewitness, dirsearch])
 check_host_ssl.register_pipe(url2web_detect)
 
 # add task
-oneforall.add_task('example.com')
+oneforall.add_task("example.com")
 # controller start
 controller.run()
 # controller.save_state()
